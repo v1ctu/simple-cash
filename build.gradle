@@ -17,10 +17,10 @@ repositories {
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT'
     compileOnly 'org.projectlombok:lombok:1.18.16'
-    compile 'org.mongodb:mongodb-driver-sync:4.1.1'
 
     annotationProcessor 'org.projectlombok:lombok:1.18.16'
 
+    implementation group: 'com.zaxxer', name: 'HikariCP', version: '3.4.5'
     implementation 'com.github.SaiintBrisson.command-framework:bukkit:1.0.0'
 }
 
