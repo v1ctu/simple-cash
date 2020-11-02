@@ -10,6 +10,8 @@ import me.saiintbrisson.minecraft.command.command.Context;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 
+import static com.github.v1ctu.util.Task.supplyAsync;
+
 public class CashRemoveCommand {
 
     private final CashPlugin plugin;
@@ -24,37 +26,51 @@ public class CashRemoveCommand {
     }
 
     @Command(name = "removecash", permission = "cash.admin", usage = "removecash <target> <quantity>")
-    public void execute(Context<CommandSender> context, OfflinePlayer target, double quantity) {
+    public void execute(Context<CommandSender> context, String target, double quantity) {
         CommandSender commandSender = context.getSender();
-        UserEntity targetEntity = userCache.get(target.getUniqueId());
+        UserEntity targetEntity = userCache.get(target);
 
         if (quantity <= 0) {
             commandSender.sendMessage("§cVoce precisa remover um numero maior que zero.");
             return;
         }
-        if (targetEntity.getQuantity() < 0) {
-            commandSender.sendMessage("§cEsse jogador possui uma quantia menor ou igual a 0, portanto nao foi possivel remover.");
-            return;
-        }
 
-        if (targetEntity.getQuantity() < quantity) {
-            commandSender.sendMessage("§cVoce nao pode remover uma quantidade maior do que o jogador possui.");
-            return;
+        if (targetEntity == null) {
+            supplyAsync(() -> userDao.find(target))
+                    .whenComplete((userEntity, $) -> {
+                        if (userEntity == null) {
+                            commandSender.sendMessage("§cJogador nao encontrado.");
+                        } else {
 
-        }
-        if (target.isOnline()) {
+                            if (userEntity.getQuantity() < 0) {
+                                commandSender.sendMessage("§cEsse jogador possui uma quantia menor ou igual a 0, portanto nao foi possivel remover.");
+                            }
+
+                            if (userEntity.getQuantity() < quantity) {
+                                commandSender.sendMessage("§cVoce nao pode remover uma quantidade maior do que o jogador possui.");
+                                return;
+                            }
+
+                            userEntity.setQuantity(userEntity.getQuantity() - quantity);
+                            userDao.replace(userEntity);
+                            commandSender.sendMessage("§aVocê removeu §f" + quantity + " §ade cash do o jogador: §f" + target);
+                        }
+                    });
+        } else {
+
+            if (targetEntity.getQuantity() < 0) {
+                commandSender.sendMessage("§cEsse jogador possui uma quantia menor ou igual a 0, portanto nao foi possivel remover.");
+                return;
+            }
+
+            if (targetEntity.getQuantity() < quantity) {
+                commandSender.sendMessage("§cVoce nao pode remover uma quantidade maior do que o jogador possui.");
+                return;
+            }
+
             targetEntity.setQuantity(targetEntity.getQuantity() - quantity);
-            commandSender.sendMessage("§aVocê removeu §f" + quantity + " §ade cash do o jogador: §f" + target.getName());
-            return;
+            commandSender.sendMessage("§aVocê removeu §f" + quantity + " §ade cash do o jogador: §f" + target);
         }
-        Task.supplyAsync(() -> userDao.find(target.getUniqueId()))
-                .whenComplete((userEntity, $) -> {
-                    if (userEntity == null) {
-                        commandSender.sendMessage("§cJogador nao encontrado.");
-                    } else {
-                        userEntity.setQuantity(userEntity.getQuantity() - quantity);
-                        commandSender.sendMessage("§aVocê removeu §f" + quantity + " §ade cash do o jogador: §f" + target.getName());
-                    }
-                });
+
     }
 }

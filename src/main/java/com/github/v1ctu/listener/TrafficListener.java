@@ -30,18 +30,18 @@ public class TrafficListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         runAsync(() -> {
             Player player = event.getPlayer();
-            UUID playerUUID = player.getUniqueId();
+            String playerName = player.getName();
 
-            UserEntity userEntity = userDao.find(playerUUID);
+            UserEntity userEntity = userDao.find(playerName);
             if (userEntity == null) {
                 UserEntity newUser = UserEntity.builder()
-                        .uuid(playerUUID)
+                        .uuid(player.getUniqueId())
                         .name(player.getName())
                         .quantity(0)
                         .build();
-                userCache.put(playerUUID, newUser);
+                userCache.put(playerName, newUser);
             } else {
-                userCache.put(playerUUID, userEntity);
+                userCache.put(playerName, userEntity);
             }
         });
     }
@@ -49,11 +49,11 @@ public class TrafficListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         runAsync(() -> {
-            UUID playerUUID = event.getPlayer().getUniqueId();
-            UserEntity userEntity = userCache.get(playerUUID);
+            String playerName = event.getPlayer().getName();
+            UserEntity userEntity = userCache.get(playerName);
 
             userDao.replace(userEntity);
-            userCache.remove(playerUUID);
+            userCache.remove(playerName);
         });
     }
 

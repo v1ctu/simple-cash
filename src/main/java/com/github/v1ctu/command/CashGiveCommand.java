@@ -26,8 +26,10 @@ public class CashGiveCommand {
     @Command(name = "givecash", permission = "cash.admin", usage = "givecash <target> <quantity>")
     public void execute(Context<Player> context, Player target, double quantity) {
         CommandSender commandSender = context.getSender();
-        UserEntity senderEntity = userCache.get(context.getSender().getUniqueId());
-        UserEntity targetEntity = userCache.get(target.getUniqueId());
+        UserEntity senderEntity = userCache.get(context.getSender().getName());
+        UserEntity targetEntity = userCache.get(target.getName());
+
+
 
         if (quantity <= 0) {
             commandSender.sendMessage("§cVocê deve enviar uma quantia maior que zero.");

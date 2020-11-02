@@ -8,6 +8,7 @@ import com.github.v1ctu.storage.MySQL;
 import lombok.Getter;
 import me.saiintbrisson.bukkit.command.BukkitFrame;
 import me.saiintbrisson.minecraft.command.message.MessageType;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
@@ -31,10 +32,15 @@ public class CashPlugin extends JavaPlugin {
     }
 
     private void initVariables() {
-        mySql = new MySQL("", "", "", "", 3306);
+        mySql = new MySQL("localhost", "root", "", "bozocash", 3306);
         mySql.openConnection();
         userCache = new UserCache(this);
         userDao = new UserDao(this);
+
+
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+            userCache.save();
+        }, 20 * 60 * 5, 20 * 60 * 10);
     }
 
     private void registerCommands() {
@@ -49,7 +55,8 @@ public class CashPlugin extends JavaPlugin {
                 new CashSetCommand(this),
                 new CashAddCommand(this),
                 new CashRemoveCommand(this),
-                new CashGiveCommand(this));
+                new CashGiveCommand(this),
+                new CashTopCommand(this));
     }
 
     private void registerListeners() {

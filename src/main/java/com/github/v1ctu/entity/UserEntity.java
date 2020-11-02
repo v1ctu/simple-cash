@@ -15,4 +15,12 @@ public class UserEntity {
     @Setter
     private double quantity;
 
+    @Override
+    public String toString() {
+        return "UserEntity{" +
+                "uuid=" + uuid +
+                ", name='" + name + '\'' +
+                ", quantity=" + quantity +
+                '}';
+    }
 }

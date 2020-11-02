@@ -25,27 +25,32 @@ public class CashSetCommand {
     }
 
     @Command(name = "setcash", permission = "cash.admin", usage = "setcash <target> <quantity>")
-    public void execute(Context<CommandSender> context, OfflinePlayer target, double quantity) {
+    public void execute(Context<CommandSender> context, String target, double quantity) {
+
         CommandSender commandSender = context.getSender();
-        UserEntity user = userCache.get(target.getUniqueId());
+        UserEntity user = userCache.get(target);
 
         if (quantity < 0) {
             commandSender.sendMessage("§cVoce precisa setar um numero maior ou igual a 0.");
             return;
         }
-        if (target.isOnline()) {
+
+        if (user == null) {
+            supplyAsync(() -> userDao.find(target))
+                    .whenComplete((userEntity, $) -> {
+                        if (userEntity == null) {
+                            commandSender.sendMessage("§cJogador nao encontrado.");
+                        } else {
+                            userEntity.setQuantity(quantity);
+                            userDao.replace(userEntity);
+                            commandSender.sendMessage("§aVocê setou o cash do jogador: §f" + target + " §apara: §f" + userEntity.getQuantity());
+                        }
+                    });
+        } else {
             user.setQuantity(quantity);
-            commandSender.sendMessage("§aVocê setou o cash do jogador: §f" + target.getName() + " §apara: §f" + user.getQuantity());
-            return;
+            commandSender.sendMessage("§aVocê setou o cash do jogador: §f" + target + " §apara: §f" + user.getQuantity());
         }
-        supplyAsync(() -> userDao.find(target.getUniqueId()))
-                .whenComplete((userEntity, $) -> {
-                    if (userEntity == null) {
-                        commandSender.sendMessage("§cJogador nao encontrado.");
-                    } else {
-                        userEntity.setQuantity(quantity);
-                        commandSender.sendMessage("§aVocê setou o cash do jogador: §f" + target.getName() + " §apara: §f" + userEntity.getQuantity());
-                    }
-                });
+
+
     }
 }

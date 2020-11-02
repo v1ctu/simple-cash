@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import java.util.UUID;
 
 @AllArgsConstructor
-public class UserCache extends Cache<UUID, UserEntity> {
+public class UserCache extends Cache<String, UserEntity> {
 
     private final CashPlugin plugin;
 
